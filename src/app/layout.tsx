@@ -12,6 +12,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SIRIUS REGENERATIVE",
   description: "Portal de Proveedores SIRIUS REGENERATIVE",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
