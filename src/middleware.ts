@@ -1,102 +1,83 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Configuración de rutas protegidas
+// Define protected paths more precisely
 const PROTECTED_PATHS = [
   '/dashboard',
   '/cuentas-cobro',
-  '/api/(?!auth|public).*' // Protege todas las APIs excepto auth y public
+  '/proveedores'
 ];
 
-// Interface para respuesta de verificación
-interface VerifyResponse {
-  estado: 'Activo' | 'Inactivo' | 'Pendiente';
-  error?: string;
-}
-
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Verificar si la ruta está protegida
-  const isProtected = PROTECTED_PATHS.some(pattern => 
-    new RegExp(`^${pattern.replace(/\*/g, '.*')}$`).test(pathname)
+  // Check if path should be protected
+  const isProtectedPath = PROTECTED_PATHS.some(path => 
+    request.nextUrl.pathname.startsWith(path)
   );
 
-  if (!isProtected) return NextResponse.next();
+  if (!isProtectedPath) {
+    return NextResponse.next();
+  }
 
   try {
+    // Get the session cookie
     const proveedorId = request.cookies.get('proveedorId')?.value;
-    console.log('Cookie proveedorId:', proveedorId);
     
-    if (!proveedorId) throw new Error('No hay sesión activa');
+    if (!proveedorId) {
+      console.log('No proveedorId cookie found');
+      return redirectToLogin(request);
+    }
 
-    const verifyUrl = new URL('/api/auth/verify', request.nextUrl.origin);
-    console.log('Verificando en URL:', verifyUrl.toString());
-    
-    const verifyResponse = await fetch(verifyUrl.toString(), {
-      headers: { Cookie: request.headers.get('Cookie') || '' }
+    // Make the verification request
+    const verifyResponse = await fetch(`${request.nextUrl.origin}/api/auth/verify`, {
+      headers: {
+        'Cookie': `proveedorId=${proveedorId}`,
+        'Cache-Control': 'no-cache'
+      }
     });
 
     if (!verifyResponse.ok) {
-      const errorText = await verifyResponse.text();
-      console.error('Respuesta no OK:', {
-        status: verifyResponse.status,
-        statusText: verifyResponse.statusText,
-        body: errorText
-      });
-      throw new Error(`Error en verificación: ${verifyResponse.status}`);
+      console.error('Verify response not OK:', verifyResponse.status);
+      return redirectToLogin(request);
     }
 
-    const data = await verifyResponse.json() as VerifyResponse; // Aquí usamos la interfaz
-    console.log('Datos recibidos en middleware:', data);
-
-    // Verificar la estructura de datos
-    if (!data || typeof data.estado === 'undefined') {
-      console.error('Estructura de datos inválida:', data);
-      throw new Error('Respuesta inválida del servidor');
+    const data = await verifyResponse.json();
+    
+    if (data.error || !data.estado) {
+      console.error('Invalid verification data:', data);
+      return redirectToLogin(request);
     }
 
     if (data.estado !== 'Activo') {
-      console.log('Estado no activo:', data.estado);
-      const deniedUrl = new URL('/acceso-denegado', request.url);
-      deniedUrl.searchParams.set('reason', 'account_status');
-      return NextResponse.redirect(deniedUrl);
+      return redirectToAccessDenied(request, 'account_status');
     }
 
+    // Add verification headers to the response
     const response = NextResponse.next();
-    response.headers.set('Cache-Control', 'no-store, max-age=0');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    
+    response.headers.set('x-proveedor-verified', 'true');
     return response;
 
-  } catch (error: unknown) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Middleware Error:', {
-        path: pathname,
-        error: error instanceof Error ? {
-          message: error.message,
-          stack: error.stack
-        } : error
-      });
-    }
-
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    if (error instanceof Error) {
-      loginUrl.searchParams.set('error', 'session_expired');
-    }
-
-    const response = NextResponse.redirect(loginUrl);
-    response.cookies.delete('proveedorId');
-    
-    return response;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return redirectToLogin(request);
   }
+}
+
+function redirectToLogin(request: NextRequest) {
+  const loginUrl = new URL('/login', request.url);
+  loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
+  return NextResponse.redirect(loginUrl);
+}
+
+function redirectToAccessDenied(request: NextRequest, reason: string) {
+  const deniedUrl = new URL('/acceso-denegado', request.url);
+  deniedUrl.searchParams.set('reason', reason);
+  return NextResponse.redirect(deniedUrl);
 }
 
 export const config = {
   matcher: [
     '/dashboard/:path*',
     '/cuentas-cobro/:path*',
-    '/((?!_next/static|_next/image|favicon.ico|login|acceso-denegado).*)'
+    '/proveedores/:path*',
   ]
 };
