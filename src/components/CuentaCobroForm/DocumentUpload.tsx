@@ -14,6 +14,7 @@ export function DocumentUpload({ onFileSelected, error, selectedFile }: Document
         <label className="block">
           <span className="text-sm font-medium text-gray-300">
             Certificado de Parafiscales
+            <p>Tener en cuenta que la base de cotización para aportes a seguridad social es el cuarenta por ciento (40%) del valor mensualizado del contrato. Ley 2277 de 2022 - Artículo 89. Ingreso base de cotización (IBC) de los independientes.</p>
           </span>
           <input
             type="file"
