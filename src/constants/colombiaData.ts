@@ -81,5 +81,16 @@ export const departamentosColombia = [
     'Citibank',
     'Banco Santander',
     'Banco Itaú',
-    'Banco Colpatria'
+    'Banco Colpatria',
+    'Nequi',
+    'Daviplata',
+    'RappiPay',
+    'Movii',
+    'Nu Colombia (Nubank)',
+    'Bancoomeva',
+    'Coopcentral',
+    'Cafam',
+    'Colpatria Cooperativa',
+    'Cotrafa',
+    'Fondo Nacional del Ahorro (FNA)'
 ];
