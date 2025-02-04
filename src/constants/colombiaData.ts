@@ -55,7 +55,10 @@ export const departamentosColombia = [
     'Armenia',
     'Popayán',
     'Sincelejo',
-    'Ibagué'
+    'Ibagué',
+    'Barranca de upia',
+    'Yopal',
+    'Villanueva'
   ];
   
   export const bancosColombia = [
