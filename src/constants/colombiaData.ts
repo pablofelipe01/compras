@@ -61,7 +61,7 @@ export const departamentosColombia = [
     'Villanueva'
   ];
   
-  export const traditionalBanks = [
+  export const bancosColombia = [
     'Bancolombia',
     'Banco de Bogotá',
     'Davivienda',
