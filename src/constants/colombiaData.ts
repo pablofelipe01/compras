@@ -61,16 +61,25 @@ export const departamentosColombia = [
     'Villanueva'
   ];
   
-  export const bancosColombia = [
+  export const traditionalBanks = [
     'Bancolombia',
     'Banco de Bogotá',
     'Davivienda',
     'BBVA',
     'Banco de Occidente',
-
-    
-    
-    
-    
-    
-  ];
+    'Banco Popular',
+    'Banco Caja Social',
+    'Banco Agrario',
+    'Banco AV Villas',
+    'Banco GNB Sudameris',
+    'Banco Falabella',
+    'Bancoomeva',
+    'Banco Pichincha',
+    'Banco Serfinanza',
+    'Banco W',
+    'Banco Finandina',
+    'Citibank',
+    'Banco Santander',
+    'Banco Itaú',
+    'Banco Colpatria'
+];
