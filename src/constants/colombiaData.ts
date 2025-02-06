@@ -87,7 +87,7 @@ export const departamentosColombia = [
     'RappiPay',
     'Movii',
     'Nu Colombia (Nubank)',
-    'Bancoomeva',
+    
     'Coopcentral',
     'Cafam',
     'Colpatria Cooperativa',
