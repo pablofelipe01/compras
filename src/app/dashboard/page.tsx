@@ -2,11 +2,13 @@
 'use client'
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { DocumentUpload } from '@/components/CargarArchivos/DocumentUpload';
 
 interface DashboardData {
  totalCuentas: number;
  pendientes: number;
  aprobadas: number;
+ comentariosProveedor: string;
  cuentasRecientes: {
    id: string;
    fecha: string;
@@ -28,6 +30,7 @@ export default function DashboardPage() {
  const [data, setData] = useState<DashboardData | null>(null);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState('');
+ const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
  useEffect(() => {
    const fetchDashboardData = async () => {
@@ -58,6 +61,14 @@ export default function DashboardPage() {
    fetchDashboardData();
  }, []);
 
+ const requiereSubida = (comentario: string): boolean => {
+  const keywords = [
+    'Subir nuevamente el RUT',
+    'Subir nuevamente el certificado bancario',
+    'Subir nuevamente el documento de identidad'
+  ];
+  return keywords.some(keyword => comentario.includes(keyword));
+};
  return (
    <main className="min-h-screen bg-gray-900 py-12">
      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -93,6 +104,25 @@ export default function DashboardPage() {
             Nueva Cuenta de Cobro
           </Link>
         </div>
+
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h3 className="text-sm font-medium text-gray-400">Comentarios</h3>
+          <p className="mt-2 text-base text-white">
+            {data?.comentariosProveedor || 'Sin Comentarios'}
+          </p>
+          {data?.comentariosProveedor && requiereSubida(data.comentariosProveedor) && (
+            <div className="mt-4">
+              <DocumentUpload onFileSelected={setSelectedFile} selectedFile={selectedFile} />
+              <button
+                className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                onClick={() => console.log('Archivo subido:', selectedFile)}
+              >
+                Subir Documento
+              </button>
+            </div>
+          )}
+        </div>
+         <br />
 
        {/* Resumen */}
        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-8">
