@@ -1,4 +1,3 @@
-// src/app/api/dashboard/route.ts
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Airtable from 'airtable';
@@ -20,13 +19,15 @@ export async function GET() {
 
     console.log('Buscando proveedor:', proveedorId);
 
-    // Primero obtener el IDENTIFICACIÓN del proveedor
+    // Obtener los datos del proveedor
     const proveedor = await base('Proveedores').find(proveedorId);
     const identificacion = proveedor.fields['IDENTIFICACIÓN'];
+    const comentarios = proveedor.fields['Comentarios'] || ''; // Guardar el valor de Comentarios
 
     console.log('IDENTIFICACIÓN del proveedor:', identificacion);
+    console.log('Comentarios del proveedor:', comentarios);
 
-    // Ahora buscar las cuentas de cobro usando la IDENTIFICACIÓN
+    // Buscar las cuentas de cobro usando la IDENTIFICACIÓN
     const records = await base('CuentasCobro')
       .select({
         filterByFormula: `{Proveedor} = '${identificacion}'`
@@ -34,18 +35,12 @@ export async function GET() {
       .all();
 
     console.log('Registros encontrados:', records.length);
-    console.log('Registros:', records.map(r => ({
-      id: r.id,
-      proveedor: r.fields.Proveedor,
-      fecha: r.fields.Fecha,
-      estado: r.fields.Estado,
-      valor: r.fields.ValorTotal
-    })));
 
     const dashboardData = {
       totalCuentas: records.length,
       pendientes: records.filter(r => r.fields.Estado === 'Pendiente').length,
       aprobadas: records.filter(r => r.fields.Estado === 'Aprobada').length,
+      comentariosProveedor: comentarios, // Agregar comentarios a la respuesta
       cuentasRecientes: records.map(record => ({
         id: record.id,
         fecha: record.fields.Fecha,
