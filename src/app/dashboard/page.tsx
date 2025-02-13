@@ -112,13 +112,7 @@ export default function DashboardPage() {
           </p>
           {data?.comentariosProveedor && requiereSubida(data.comentariosProveedor) && (
             <div className="mt-4">
-              <DocumentUpload onFileSelected={setSelectedFile} selectedFile={selectedFile} />
-              <button
-                className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                onClick={() => console.log('Archivo subido:', selectedFile)}
-              >
-                Subir Documento
-              </button>
+              <DocumentUpload onUploadSuccess={(url) => console.log('Archivo subido:', url)} />
             </div>
           )}
         </div>
