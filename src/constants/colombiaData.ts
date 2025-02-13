@@ -56,7 +56,7 @@ export const departamentosColombia = [
     'Popayán',
     'Sincelejo',
     'Ibagué',
-    'Barranca de upia',
+    'Barranca de Upia',
     'Yopal',
     'Villanueva'
   ];
