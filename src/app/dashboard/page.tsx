@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DocumentUpload } from '@/components/CargarArchivos/DocumentUpload';
+import { Menu, X } from 'lucide-react';
+
 
 interface DashboardData {
  totalCuentas: number;
@@ -30,7 +32,7 @@ export default function DashboardPage() {
  const [data, setData] = useState<DashboardData | null>(null);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState('');
- const [selectedFile, setSelectedFile] = useState<File | null>(null);
+ const [menuOpen, setMenuOpen] = useState(false);
 
  useEffect(() => {
    const fetchDashboardData = async () => {
@@ -97,13 +99,35 @@ export default function DashboardPage() {
             </Link>
             <h1 className="text-2xl font-bold text-white">Dashboard de Proveedor</h1>
           </div>
-          <Link
-            href="/cuentas-cobro/nueva"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-          >
-            Nueva Cuenta de Cobro
-          </Link>
+
+          {/* Menú hamburguesa para móviles */}
+         <div className="md:hidden">
+           <button onClick={() => setMenuOpen(!menuOpen)} className="text-white focus:outline-none">
+             {menuOpen ? <X size={28} /> : <Menu size={28} />}
+           </button>
+         </div>
+
+          {/* Botones visibles en pantallas grandes */}
+          <div className="hidden md:flex gap-4">
+           <Link href="/actualizar/" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+             Actualizar mi información
+           </Link>
+           <Link href="/cuentas-cobro/nueva" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+             Nueva Cuenta de Cobro
+           </Link>
+          </div>
         </div>
+          {/* Menú desplegable en móviles */}
+          {menuOpen && (
+            <div className="md:hidden absolute right-4 top-20 bg-gray-800 rounded-lg shadow-lg p-4">
+              <Link href="/actualizar/" className="block px-4 py-2 text-white hover:bg-gray-700">
+                Actualizar mi información
+              </Link>
+              <Link href="/cuentas-cobro/nueva" className="block px-4 py-2 text-white hover:bg-gray-700">
+                Nueva Cuenta de Cobro
+              </Link>
+            </div>
+          )}
 
         <div className="bg-gray-800 p-6 rounded-lg">
           <h3 className="text-sm font-medium text-gray-400">Comentarios</h3>
