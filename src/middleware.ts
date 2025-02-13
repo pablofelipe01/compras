@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
       return redirectToLogin(request);
     }
 
-    if (data.estado !== 'Activo') {
+    if (data.estado !== 'Activo' && data.estado !=='Pendiente') {
       return redirectToAccessDenied(request, 'account_status');
     }
 
