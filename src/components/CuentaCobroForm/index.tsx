@@ -1,4 +1,3 @@
-// src/components/CuentaCobroForm/index.tsx
 'use client'
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -51,9 +50,10 @@ export default function CuentaCobroForm({ proveedorId }: CuentaCobroFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<CuentaCobro>({
     resolver: zodResolver(cuentaCobroSchema),
+    mode: 'onChange',
     defaultValues: {
       proveedorId,
       fecha: new Date().toISOString().split('T')[0],
@@ -64,12 +64,17 @@ export default function CuentaCobroForm({ proveedorId }: CuentaCobroFormProps) {
   const [parafiscales, setParafiscales] = useState<File | null>(null);
   const [firma, setFirma] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const onSubmit = async (data: CuentaCobro) => {
-    try {
-      setIsSubmitting(true);
-      console.log('Form data:', data);
+    setShowConfirmModal(true);
+  };
 
+  const confirmSubmit = async (data: CuentaCobro) => {
+    setShowConfirmModal(false);
+    setIsSubmitting(true);
+
+    try {
       let parafiscalesUrl = '';
       if (parafiscales) {
         parafiscalesUrl = await uploadToCloudinary(parafiscales, 'parafiscales');
@@ -87,14 +92,7 @@ export default function CuentaCobroForm({ proveedorId }: CuentaCobroFormProps) {
         .filter(([key, value]) => key.endsWith('_valor') && typeof value === 'number')
         .reduce((sum, [_, value]) => sum + (value as number), 0);
 
-      const formData = {
-        ...data,
-        valorTotal,
-        parafiscalesUrl,
-        firmaUrl
-      };
-
-      console.log('Sending data:', formData);
+      const formData = { ...data, valorTotal, parafiscalesUrl, firmaUrl };
 
       const response = await fetch('/api/cuentas-cobro', {
         method: 'POST',
@@ -103,16 +101,11 @@ export default function CuentaCobroForm({ proveedorId }: CuentaCobroFormProps) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al crear la cuenta de cobro');
+        throw new Error('Error al crear la cuenta de cobro');
       }
-
-      const result = await response.json();
-      console.log('Success:', result);
 
       window.location.href = '/dashboard';
     } catch (error: any) {
-      console.error('Error:', error);
       alert(error.message || 'Error al crear la cuenta de cobro');
     } finally {
       setIsSubmitting(false);
@@ -120,42 +113,56 @@ export default function CuentaCobroForm({ proveedorId }: CuentaCobroFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">
-          Fecha
-        </label>
-        <input
-          type="date"
-          {...register('fecha')}
-          className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white"
-        />
-        {errors.fecha && (
-          <p className="mt-1 text-sm text-red-500">{errors.fecha.message}</p>
-        )}
-      </div>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Fecha</label>
+          <input
+            type="date"
+            {...register('fecha')}
+            className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white"
+          />
+          {errors.fecha && <p className="mt-1 text-sm text-red-500">{errors.fecha.message}</p>}
+        </div>
 
-      <ItemsList register={register} errors={errors} />
-      
-      <DocumentUpload
-        onFileSelected={setParafiscales}
-        error={errors.parafiscalesUrl?.message}
-        selectedFile={parafiscales}
-      />
-      
-      <SignatureComponent onSave={setFirma} />
-      
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className={`w-full py-3 px-4 rounded-md text-white font-medium
-          ${isSubmitting 
-            ? 'bg-gray-400 cursor-not-allowed' 
-            : 'bg-indigo-600 hover:bg-indigo-700'
-          }`}
-      >
-        {isSubmitting ? 'Enviando...' : 'Crear Cuenta de Cobro'}
-      </button>
-    </form>
+        <ItemsList register={register} errors={errors} />
+        
+        <DocumentUpload onFileSelected={setParafiscales} error={errors.parafiscalesUrl?.message} selectedFile={parafiscales} />
+        
+        <SignatureComponent onSave={setFirma} />
+        
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`w-full py-3 px-4 rounded-md text-white font-medium
+            ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+        >
+          {isSubmitting ? 'Enviando...' : 'Crear Cuenta de Cobro'}
+        </button>
+      </form>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-semibold text-gray-900">¡Espera un momento!</h2>
+            <p className="text-gray-700 mt-2">¿Ya validaste tu información antes de crear esta cuenta de cobro?</p>
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSubmit(confirmSubmit)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md"
+              >
+                Sí, continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
