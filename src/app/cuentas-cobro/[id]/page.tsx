@@ -1,8 +1,39 @@
-// src/app/cuentas-cobro/[id]/page.tsx
 'use client'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function CuentaCobroDetailPage() {
+  const router = useRouter();
+  const [observaciones, setObservacion] = useState('Sin observaciones');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchCuentaCobro = async () => {
+      try {
+        const id = window.location.pathname.split('/').pop(); // Obtiene el ID de la URL
+        if (!id) return;
+
+        const response = await fetch(`/api/actualizar-perfil/uploapPerfil`);
+        if (!response.ok) throw new Error('Error al obtener los datos');
+
+        const data = await response.json();
+        
+        // Buscar la cuenta de cobro específica
+        const cuenta = data.cuentasRecientes.find(c => c.id === id);
+
+        setObservacion(cuenta?.observaciones || 'Sin observaciones');
+      } catch (err) {
+        setError('No se pudo cargar la cuenta de cobro');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCuentaCobro();
+  }, []);
+
   return (
     <main className="min-h-screen bg-gray-900 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,9 +67,14 @@ export default function CuentaCobroDetailPage() {
             <h1 className="text-xl font-semibold text-white mb-4">
               Detalles de Cuenta de Cobro
             </h1>
-            <p className="text-gray-400">
-              Esta sección está en desarrollo...
-            </p>
+
+            {loading ? (
+              <p className="text-gray-400">Cargando...</p>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : (
+              <p className="text-gray-300">Observación de la cuenta de cobro: {observaciones}</p>
+            )}
           </div>
         </div>
       </div>
