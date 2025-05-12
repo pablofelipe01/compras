@@ -34,7 +34,7 @@ export default function Home() {
             className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 
               transition-colors duration-200 text-lg font-medium"
           >
-            Acceder como Proveedor
+            Acceder como Cliente
           </Link>
 
           <Link
@@ -43,7 +43,7 @@ export default function Home() {
               rounded-lg hover:bg-indigo-500 hover:text-white transition-colors duration-200 
               text-lg font-medium"
           >
-            Crear Perfil de Proveedor
+            Crear Perfil de Cliente
           </Link>
         </div>
       </main>
